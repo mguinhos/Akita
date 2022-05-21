@@ -1,0 +1,19 @@
+# Windows
+*.db
+*.exe
+*.dll
+*.lib
+
+# Linux
+*.elf
+*.so
+*.a
+
+# Akita
+*.py.c
+*.py.exe
+*.py.so
+
+# Python
+__pycache__/
+*.pyc
