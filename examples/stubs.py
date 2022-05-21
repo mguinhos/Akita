@@ -38,41 +38,44 @@ def panic(name: str, message: str):
 def panic(message: str):
     panic("panic", message)
 
-def char__str__(value: char) -> str:
-    #emit char* buffer = malloc(2);
-    #emit buffer[0] = value;
-    #emit buffer[1] = '\0';
-    #emit return buffer;
-    pass
+class char:
+    def __str__(value: char) -> str:
+        #emit char* buffer = malloc(2);
+        #emit buffer[0] = value;
+        #emit buffer[1] = '\0';
+        #emit return buffer;
+        pass
 
-def int__str__(value: int) -> str:
-    #emit char* buffer = malloc(32 +1);
-    #emit itoa(value, buffer, 10);
-    #emit return buffer;
-    pass
+class int:
+    def __str__(value: int) -> str:
+        #emit char* buffer = malloc(32 +1);
+        #emit itoa(value, buffer, 10);
+        #emit return buffer;
+        pass
 
-def str_iterator__next__(self: str_iterator_p) -> str:
-    #emit if (self->string[self->position] == '\0')
-    #emit {
-    #emit  self->stopped = true;
-    #emit  return "x";
-    #emit }
-    #emit char* buffer = char__str__(self->string[self->position++]);
-    #emit return buffer;
-    pass
+class str_iterator:
+    def __next__(self: str_iterator_p) -> str:
+        #emit if (self->string[self->position] == '\0')
+        #emit {
+        #emit  self->stopped = true;
+        #emit  return "x";
+        #emit }
+        #emit char* buffer = char____str__(self->string[self->position++]);
+        #emit return buffer;
+        pass
 
-
-def str__iter__(self: str) -> str_iterator_p:
-    #emit str_iterator_p iterator = malloc(sizeof(str_iterator));
-    #emit *iterator = (str_iterator) { false, self, 0, str_iterator__next__ };
-    #emit return iterator;
-    pass
+class str:
+    def __iter__(self: str) -> str_iterator_p:
+        #emit str_iterator_p iterator = malloc(sizeof(str_iterator));
+        #emit *iterator = (str_iterator) { false, self, 0, str_iterator____next__ };
+        #emit return iterator;
+        pass
 
 def iter(iterable: str) -> str_iterator_p:
-    return str__iter__(iterable)
+    return str.__iter__(iterable)
 
 def next(iterator: str_iterator_p) -> str:
-    return str_iterator__next__(iterator)
+    return str_iterator.__next__(iterator)
 
 def print(value: char):
     #emit putchar(value);
