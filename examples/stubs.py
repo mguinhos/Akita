@@ -49,7 +49,8 @@ class char:
 class int:
     def __str__(value: int) -> str:
         #emit char* buffer = malloc(32 +1);
-        #emit itoa(value, buffer, 10);
+        #emit sprintf(buffer, "%i", value);
+        #emit buffer = realloc(buffer, strlen(buffer) +1);
         #emit return buffer;
         pass
 
