@@ -157,7 +157,7 @@ def len(obj: list[str]) -> int:
     return length
 
 
-def _open(path: str, mode: str) -> FILE_p:
+def _x_open(path: str, mode: str) -> FILE_p:
     file: FILE_p = 0
     #emit file = fopen(path, mode);
 
@@ -166,7 +166,7 @@ def _open(path: str, mode: str) -> FILE_p:
 
     return file
 
-def _open(path: str) -> FILE_p:
+def _x_open(path: str) -> FILE_p:
     return _open(path, "r")
 
 
