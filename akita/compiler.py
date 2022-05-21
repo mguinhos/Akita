@@ -98,7 +98,7 @@ def get_hint(namespace: Namespace, operand: AnyOperand):
     return operand.hint
 
 def get_function(namespace: Namespace, call: Call):
-    if (functions := namespace.functions.get(call.name)) is None:    
+    if (functions := namespace.functions.get(call.name)) is None:
         raise NameError(f'there is no function named `{call.name.value}`')
     
     call_signature = tuple(get_hint(namespace, arg) for arg in call.args)
@@ -110,11 +110,8 @@ def get_function(namespace: Namespace, call: Call):
     return functions[call_signature]
 
 def compile_call(namespace: Namespace, call: Call):
-    if call.name == "str":
-        call.name = Name(f'{call.args[0].hint.value}__str__', Name('str'))
-
     function = get_function(namespace, call)
-    return f'{function.name.value}({", ".join(str(compile_expression(namespace, arg)) for arg in call.args)})'
+    return f'{function.name.value.replace(".", "__")}({", ".join(str(compile_expression(namespace, arg)) for arg in call.args)})'
 
 def compile_body(namespace: Namespace, body: Body, indent=0):
     INDENTTAB = SOFTTAB * indent
@@ -221,13 +218,13 @@ def compile_type(namespace: Namespace, name: Name):
 
 def compile_def(namespace: Namespace, ast: Def, prefix: Name=None):
     if prefix:
-        ast.name = Name(prefix.value + '__' + ast.name.value, ast.name or ast.rethint)
+        ast.name = Name(prefix.value + '.' + ast.name.value, ast.name or ast.rethint)
 
     local_namespace = Namespace(list(namespace.variables), namespace.functions)
     local_namespace.variables.extend(ast.args)
 
     if ast.name in namespace.functions:
-        new_name = f'{ast.name.value}_{"_".join(compile_type(namespace, arg.hint).value for arg in ast.args)}{"_" + ast.name.hint.value if ast.name.hint else ""}'
+        new_name = f'{ast.name.value.replace(".", "__")}_{"_".join(compile_type(namespace, arg.hint).value for arg in ast.args)}{"_" + ast.name.hint.value if ast.name.hint else ""}'
         
         namespace.functions[ast.name].update({tuple(compile_type(namespace, sign) for sign in ast.signature): Def(Name(new_name), ast.args, ast.body, ast.rethint)})
 
@@ -235,7 +232,7 @@ def compile_def(namespace: Namespace, ast: Def, prefix: Name=None):
     
     namespace.functions[ast.name] = {tuple(compile_type(namespace, sign) for sign in ast.signature): ast}
 
-    return f'{ast.rethint.value if ast.rethint else "void"} {ast.name.value}({", ".join(arg.hint.value + " " + arg.value for arg in ast.args)}){NEWLINE}{{{compile_body(local_namespace, ast.body, indent=1)}{NEWLINE}}}'
+    return f'{ast.rethint.value if ast.rethint else "void"} {ast.name.value.replace(".", "__")}({", ".join(arg.hint.value + " " + arg.value for arg in ast.args)}){NEWLINE}{{{compile_body(local_namespace, ast.body, indent=1)}{NEWLINE}}}'
 
 def compile_class(namespace: Namespace, ast: Class):
     return f'\n'.join(compile_def(namespace, function, prefix=ast.name) for function in ast.body.lines)

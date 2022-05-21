@@ -31,13 +31,20 @@ class Class:
         return f'Class({self.name}, {self.body})'
 
 class Call:
-    def __init__(self, name: Name, args: tuple["AnyOperand"], hint=None):
-        self.name = name
+    def __init__(self, head: "AnyOperand", args: tuple["AnyOperand"], hint=None):
+        self.head = head
         self.args = args
         self.hint = hint
     
     def __repr__(self):
         return f'Call({self.name}, {self.args})'
+    
+    @property
+    def name(self):
+        if type(self.head) is Name:
+            return self.head
+        
+        return self.head.name
 
 class BinaryOperation:
     def __init__(self, operator: Token, left: "AnyOperand", right: "AnyOperand"):
@@ -143,16 +150,20 @@ class List:
         return Name(f'list__{self.hint.value}__', self.hint)
 
 class Attribute:
-    def __init__(self, head: AnyOperand, name: Name):
+    def __init__(self, head: AnyOperand, body: list[AnyOperand]):
         self.head = head
-        self.name = name
+        self.body = body
     
     def __repr__(self):
-        return f'Attribute({self.head}, {self.name})'
+        return f'Attribute({self.head}, {self.body})'
     
     @property
     def hint(self):
-        return self.name.hint
+        return self.body.hint
+    
+    @property
+    def name(self) -> Name:
+        return Name(f'{self.head.value}.{".".join(name.value for name in self.body)}')
 
 class Set:
     def __init__(self, name: Name, token: Token, value: AnyOperand):
@@ -205,7 +216,20 @@ def parse_list(hook: TokenHook) -> List:
 
     return List(items)
 
-def parse_expression(hook: TokenHook, value: AnyOperand) -> AnyOperand:
+def parse_attribute(hook: TokenHook, value: Name) -> AnyOperand:
+    body = []
+
+    for token in hook:
+        body.append(parse_expression(hook, token, {Token.Dot}))
+        token = hook.take()
+        
+        if token is not Token.Dot:
+            hook.drop()
+            break
+
+    return Attribute(value, body)
+
+def parse_expression(hook: TokenHook, value: AnyOperand, accept=set()) -> AnyOperand:
 
     if value is Token.LeftBracket:
         return parse_list(hook)
@@ -215,10 +239,14 @@ def parse_expression(hook: TokenHook, value: AnyOperand) -> AnyOperand:
     
     token = hook.take()
 
+    if accept and token not in accept:
+        hook.drop()
+        return value
+
     if token in (Token.Plus, Token.Minus, Token.Star, Token.Slash, Token.LessThan, Token.GreaterThan, Token.EqualEqual, Token.NotEqual):
         return BinaryOperation(token, value, parse_expression(hook, hook.take()))
     elif token is Token.Dot:
-        return Attribute(value, parse_expression(hook, hook.take()))
+        return parse_expression(hook, parse_attribute(hook, value))
     elif token is Token.LeftParenthesis:
         return parse_expression(hook, parse_call(hook, value))
     elif token is Token.LeftBracket:
