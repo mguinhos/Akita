@@ -149,13 +149,6 @@ def len(obj: str) -> int:
     
     return length
 
-def len(obj: list[str]) -> int:
-    length = 0
-    for _ in obj:
-        length += 1
-    
-    return length
-
 
 def _x_open(path: str, mode: str) -> FILE_p:
     file: FILE_p = 0

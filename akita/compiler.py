@@ -27,7 +27,7 @@ def compile_expression(namespace: Namespace, operand: AnyOperand):
         return operand.value
     
     elif type(operand) is List:
-        return f'{{{", ".join([*(compile_expression(namespace, item) for item in operand.items), "NULL"])}}}'
+        return f'{{{", ".join(compile_expression(namespace, item) for item in operand.items)}}}'
     
     elif type(operand) is Item:
         operand.head.hint = get_hint(namespace, operand.head)
@@ -155,7 +155,11 @@ def compile_body(namespace: Namespace, body: Body, indent=0):
                 return f'{ast.name.value} {ast.token.value} {compile_expression(namespace, ast.value)};'
             
             namespace.variables.append(ast.name)
-            return f'{ast.name.hint.value}{"*" if type(ast.value) is List else ""} {ast.name.value} = {"(char**)(char*[])" if type(ast.value) is List else ""}{compile_expression(namespace, ast.value)};'
+
+            if type(ast.value) is List:
+                return f'{ast.name.hint.value} {ast.name.value}[] = {compile_expression(namespace, ast.value)};{NEWLINEINDENT}int len_{ast.name.value} = {len(ast.value.items)};'
+
+            return f'{ast.name.hint.value} {ast.name.value} = {compile_expression(namespace, ast.value)};'
         
         elif type(ast) is If:
             return f'if ({compile_expression(namespace, ast.operand)}){NEWLINEINDENT}{{{compile_body(namespace, ast.body, indent +1)}{NEWLINEINDENT}}}'
@@ -192,10 +196,10 @@ def compile_body(namespace: Namespace, body: Body, indent=0):
                     namespace.variables.append(ast.name)
                 
                 if type(ast.operand) is List:
-                    return f"str* {ast.name.value}_iterator = (char*[]) {compile_expression(namespace, ast.operand)};{NEWLINEINDENT}for (str {ast.name.value}={ast.name.value}_iterator++[0]; {ast.name.value} != NULL; {ast.name.value} = {ast.name.value}_iterator++[0]){NEWLINEINDENT}{{{compile_body(namespace, ast.body, indent +1)}{NEWLINEINDENT}}}"
+                    return f"int index_{ast.name.value} = 0;{NEWLINEINDENT * 2}for (str {ast.name.value}={ast.operand.value}[index_{ast.name.value}]; index_{ast.name.value} < len_{ast.name.value}; {ast.name.value} = {ast.operand.value}[++index_{ast.name.value}]){NEWLINEINDENT}{{{compile_body(namespace, ast.body, indent +1)}{NEWLINEINDENT}}}"
 
-                return f"str* {ast.name.value}_iterator = {compile_expression(namespace, ast.operand)};{NEWLINEINDENT}for (str {ast.name.value}={ast.name.value}_iterator++[0]; {ast.name.value} != NULL; {ast.name.value} = {ast.name.value}_iterator++[0]){NEWLINEINDENT}{{{compile_body(namespace, ast.body, indent +1)}{NEWLINEINDENT}}}"
-                
+                return f"int index_{ast.operand.value} = 0;{NEWLINEINDENT * 2}for (str {ast.name.value}={ast.operand.value}[index_{ast.operand.value}]; index_{ast.operand.value} < len_{ast.operand.value}; {ast.name.value} = {ast.operand.value}[++index_{ast.operand.value}]){NEWLINEINDENT}{{{compile_body(namespace, ast.body, indent +1)}{NEWLINEINDENT}}}"
+
             if ast.name not in namespace.variables:
                 ast.name.hint = Name('int', Name('type'))
                 namespace.variables.append(ast.name)
