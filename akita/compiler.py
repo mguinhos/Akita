@@ -196,7 +196,7 @@ def compile_body(namespace: Namespace, body: Body, indent=0):
                     namespace.variables.append(ast.name)
                 
                 if type(ast.operand) is List:
-                    return f"int index_{ast.name.value} = 0;{NEWLINEINDENT * 2}for (str {ast.name.value}={ast.operand.value}[index_{ast.name.value}]; index_{ast.name.value} < len_{ast.name.value}; {ast.name.value} = {ast.operand.value}[++index_{ast.name.value}]){NEWLINEINDENT}{{{compile_body(namespace, ast.body, indent +1)}{NEWLINEINDENT}}}"
+                    return f"list__str__ items[] = {compile_expression(namespace, ast.operand)};{NEWLINEINDENT}int len_items = {len(ast.operand.items)};{NEWLINEINDENT}int index_items = 0;{NEWLINEINDENT * 2}for (str {ast.name.value}=items[index_items]; index_items < len_items; {ast.name.value} = items[++index_items]){NEWLINEINDENT}{{{compile_body(namespace, ast.body, indent +1)}{NEWLINEINDENT}}}"
 
                 return f"int index_{ast.operand.value} = 0;{NEWLINEINDENT * 2}for (str {ast.name.value}={ast.operand.value}[index_{ast.operand.value}]; index_{ast.operand.value} < len_{ast.operand.value}; {ast.name.value} = {ast.operand.value}[++index_{ast.operand.value}]){NEWLINEINDENT}{{{compile_body(namespace, ast.body, indent +1)}{NEWLINEINDENT}}}"
 
