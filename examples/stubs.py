@@ -71,6 +71,14 @@ class str:
         #emit return iterator;
         pass
 
+    def __int__(self: str) -> int:
+        #emit return atoi(self);
+        pass
+
+    def __float__(self: str) -> float:
+        #emit return atof(self);
+        pass
+
 def iter(iterable: str) -> str_iterator_p:
     return str.__iter__(iterable)
 
