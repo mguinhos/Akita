@@ -166,7 +166,7 @@ def _open(path: str, mode: str) -> FILE_p:
     return file
 
 def _open(path: str) -> FILE_p:
-    return open(path, "r")
+    return _open(path, "r")
 
 
 class FILE:
