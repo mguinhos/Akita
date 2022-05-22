@@ -236,7 +236,7 @@ def compile_def(namespace: Namespace, ast: Def, prefix: Name=None):
     
     namespace.functions[ast.name] = {tuple(compile_type(namespace, sign) for sign in ast.signature): ast}
 
-    return f'{ast.rethint.value if ast.rethint else "void"} {ast.name.value.replace(".", "__")}({", ".join(arg.hint.value + " " + arg.value for arg in ast.args)}){NEWLINE}{{{compile_body(local_namespace, ast.body, indent=1)}{NEWLINE}}}'
+    return f'{ast.rethint.value if ast.rethint else "void"} {ast.name.value.replace(".", "__")}({", ".join(compile_type(namespace, arg.hint).value + " " + arg.value for arg in ast.args)}){NEWLINE}{{{compile_body(local_namespace, ast.body, indent=1)}{NEWLINE}}}'
 
 def compile_class(namespace: Namespace, ast: Class):
     return f'\n'.join(compile_def(namespace, function, prefix=ast.name) for function in ast.body.lines)
