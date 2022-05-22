@@ -293,6 +293,8 @@ def parse_body(hook: TokenHook):
                 if leave:
                     break
         
+        elif token is Token.Ellipsis:
+            lines.append(token)
         elif token is Keyword.Return:
             lines.append(Return(parse_expression(hook, hook.take())))
         elif token in (Keyword.Break, Keyword.Continue):
