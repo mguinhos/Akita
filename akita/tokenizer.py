@@ -171,7 +171,7 @@ def scan_token(stream: TextIOBase) -> Token:
         
         stream.seek(position)
 
-    raise SyntaxError(f'invalid token {char!r}')
+    raise SyntaxError(f'invalid token {token!r}')
 
 def scan_name(stream: TextIOBase, name: str) -> Name:
     while char := take(stream):
