@@ -1,3 +1,5 @@
+from libc import *
+
 #emit #define _CRT_NONSTDC_NO_DEPRECATE
 #emit #define _CRT_SECURE_NO_DEPRECATE
 #emit #define _CRT_SECURE_NO_WARNINGS
@@ -32,8 +34,7 @@
 
 def panic(name: str, message: str):
     #emit fprintf(stderr, ASCII_RED "%s: %s\n" ASCII_DEFAULT, name, message);
-    #emit exit(-1);
-    pass
+    exit(-1)
 
 def panic(message: str):
     panic("panic", message)
