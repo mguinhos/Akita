@@ -34,7 +34,7 @@ from libc import *
 
 def panic(name: str, message: str):
     #emit fprintf(stderr, ASCII_RED "%s: %s\n" ASCII_DEFAULT, name, message);
-    exit(-1)
+    exit(0 - 1)
 
 def panic(message: str):
     panic("panic", message)

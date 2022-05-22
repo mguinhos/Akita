@@ -6,3 +6,6 @@ def free(address: int):
 
 def puts(string: str):
     ...
+
+def exit(status: int):
+    ...
