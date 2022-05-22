@@ -160,14 +160,16 @@ def take(stream: TextIOBase) -> str:
     return stream.read(1)
 
 
-def scan_token(stream: TextIOBase, char: str) -> Token:
-    chunk = char + stream.read(LEN_LONGEST_TOKEN -1)
-    len_chunk = len(chunk)
+def scan_token(stream: TextIOBase) -> Token:
+    position = stream.tell()
 
     for token in TOKENS_SORTED:
+        chunk = stream.read(len(token))
+
         if chunk.startswith(token.value):
-            drop(stream, len_chunk - len(token))
             return token
+        
+        stream.seek(position)
 
     raise SyntaxError(f'invalid token {char!r}')
 
@@ -373,7 +375,8 @@ def tokenize(stream: TextIOBase) -> TokenHook:
             elif char == '#':
                 yield scan_comment(stream)
             else:
-                yield scan_token(stream, char)
+                drop(stream)
+                yield scan_token(stream)
         
         yield Token.Eof
     
