@@ -118,7 +118,10 @@ def compile_body(namespace: Namespace, body: Body, indent=0):
     NEWLINEINDENT = NEWLINE + INDENTTAB
 
     def compile(ast):
-        if type(ast) is Comment:
+        if ast is Token.Ellipsis:
+            return f'// ...'
+        
+        elif type(ast) is Comment:
             if ast.value.startswith('emit '):
                 return ast.value.removeprefix('emit ')
             
@@ -227,16 +230,22 @@ def compile_def(namespace: Namespace, ast: Def, prefix: Name=None):
     local_namespace = Namespace(list(namespace.variables), namespace.functions)
     local_namespace.variables.extend(ast.args)
 
+    if len(ast.body.lines) == 1 and ast.body.lines[0] is Token.Ellipsis:
+        is_dummy = True
+    else:
+        is_dummy = False
+
+
     if ast.name in namespace.functions:
         new_name = f'{ast.name.value.replace(".", "__")}_{"_".join(compile_type(namespace, arg.hint).value for arg in ast.args)}{"_" + ast.name.hint.value if ast.name.hint else ""}'
         
         namespace.functions[ast.name].update({tuple(compile_type(namespace, sign) for sign in ast.signature): Def(Name(new_name), ast.args, ast.body, ast.rethint)})
 
-        return f'{compile_type(namespace, ast.rethint).value} {new_name}({", ".join(compile_type(namespace, arg.hint).value + " " + arg.value for arg in ast.args)}){NEWLINE}{{{compile_body(local_namespace, ast.body, indent=1)}{NEWLINE}}}'
+        return f'{"/*" + NEWLINE if is_dummy else ""}{compile_type(namespace, ast.rethint).value} {new_name}({", ".join(compile_type(namespace, arg.hint).value + " " + arg.value for arg in ast.args)}){NEWLINE}{{{compile_body(local_namespace, ast.body, indent=1)}{NEWLINE}}}{NEWLINE + "/*" if is_dummy else ""}'
     
     namespace.functions[ast.name] = {tuple(compile_type(namespace, sign) for sign in ast.signature): ast}
 
-    return f'{ast.rethint.value if ast.rethint else "void"} {ast.name.value.replace(".", "__")}({", ".join(compile_type(namespace, arg.hint).value + " " + arg.value + ("[]" if compile_type(namespace, arg.hint).value.startswith("list") else "") for arg in ast.args)}){NEWLINE}{{{compile_body(local_namespace, ast.body, indent=1)}{NEWLINE}}}'
+    return f'{"/*" + NEWLINE if is_dummy else ""}{ast.rethint.value if ast.rethint else "void"} {ast.name.value.replace(".", "__")}({", ".join(compile_type(namespace, arg.hint).value + " " + arg.value + ("[]" if compile_type(namespace, arg.hint).value.startswith("list") else "") for arg in ast.args)}){NEWLINE}{{{compile_body(local_namespace, ast.body, indent=1)}{NEWLINE}}}{NEWLINE + "*/" if is_dummy else ""}'
 
 def compile_class(namespace: Namespace, ast: Class):
     return f'\n'.join(compile_def(namespace, function, prefix=ast.name) for function in ast.body.lines)
