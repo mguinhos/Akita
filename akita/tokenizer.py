@@ -12,6 +12,7 @@ class Token(Enum):
     Semicolon=          ';'
     Comma=              ','
     Dot=                '.'
+    Ellipsis=           '...'
 
     Not=                '!'
     Equal=              '='
