@@ -56,8 +56,6 @@ class Token(Enum):
         return self.value == value
 
 TOKENS_SORTED = sorted(Token, key=len, reverse=True)
-LONGEST_TOKEN = TOKENS_SORTED[0]
-LEN_LONGEST_TOKEN = len(LONGEST_TOKEN)
 
 class Keyword(Enum):
     Pass=               'pass'
@@ -85,8 +83,6 @@ class Keyword(Enum):
         return self.value == value
 
 KEYWORDS_SORTED = sorted(Keyword, key=len, reverse=True)
-LONGEST_KEYWORD = KEYWORDS_SORTED[0]
-LEN_LONGEST_KEYWORD = len(LONGEST_KEYWORD)
 
 class Name:
     def __init__(self, value: str, hint: "Name"=None):
