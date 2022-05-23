@@ -391,7 +391,27 @@ def parse_def(hook: TokenHook):
     return Def(name, args, parse_body(hook), rethint)
 
 def parse_class(hook: TokenHook) -> Class:
-    return Class(hook.take(), parse_body(hook))
+    name = hook.take()
+
+    if type(name) is not Name:
+        raise SyntaxError(f'expected class name, found `{name}`')
+    
+    token = hook.take()
+
+    if token is Token.Colon:
+        hook.drop()
+        return Class(name, parse_body(hook))
+    
+    if token is not Token.LeftParenthesis:
+        raise SyntaxError(f'expecting `(`, found `{token}`')
+    
+    expression = parse_expression(hook, hook.take())
+    token = hook.take()
+
+    if token is not Token.RightParenthesis:
+        raise SyntaxError(f'expecting `)`, found `{token}`')
+
+    return Class(expression, parse_body(hook))
     
 def parse(hook: TokenHook):
     for token in hook:
