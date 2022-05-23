@@ -1,4 +1,5 @@
 from os import path
+from io import StringIO
 
 from .tokenizer import Keyword, Literal, Comment, Name
 from .tokenizer import tokenize, Token
@@ -273,7 +274,7 @@ def compile(ast, namespace=Namespace(), path='.'):
 def compile_filename(name: str, namespace=Namespace()):
     output = open(f'{name}.c', 'w')
 
-    for ast in parse(tokenize(open(name))):
+    for ast in parse(tokenize(StringIO(open(name).read()))):
         output.write(compile(ast, namespace, path.dirname(name)))
         output.write('\n')
     
