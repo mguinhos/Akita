@@ -2,8 +2,10 @@ from functools import cache
 from typing import Iterator
 from enum import Enum
 
-from io import TextIOBase
+from io import StringIO
 from io import IOBase
+
+Stream = StringIO
 
 class Token(Enum):
     Eof=                '\0'
@@ -153,14 +155,14 @@ class Indent:
 AnyToken = Keyword | Token | Name | Literal | Comment | Indent
 
 
-def drop(stream: TextIOBase, decrement=1) -> int:
+def drop(stream: Stream, decrement=1) -> int:
     return stream.seek(stream.tell() - decrement)
 
-def take(stream: TextIOBase) -> str:
+def take(stream: Stream) -> str:
     return stream.read(1)
 
 
-def scan_token(stream: TextIOBase) -> Token:
+def scan_token(stream: Stream) -> Token:
     position = stream.tell()
 
     for token in TOKENS_SORTED:
@@ -173,7 +175,7 @@ def scan_token(stream: TextIOBase) -> Token:
 
     raise SyntaxError(f'invalid token {stream.read(1)!r}')
 
-def scan_name(stream: TextIOBase, name: str) -> Name:
+def scan_name(stream: Stream, name: str) -> Name:
     while char := take(stream):
         if char >= 'a' and char <= 'z' or char >= 'A' and char <= 'Z':
             name += char
@@ -187,7 +189,7 @@ def scan_name(stream: TextIOBase, name: str) -> Name:
     
     return Name(name)
 
-def scan_number(stream: TextIOBase, value: str) -> Literal:
+def scan_number(stream: Stream, value: str) -> Literal:
     while char := take(stream):
         if char == '_' or char >= '0' and char <= '9':
             value += char
@@ -213,7 +215,7 @@ def scan_number(stream: TextIOBase, value: str) -> Literal:
     
     return Literal(float(value))
 
-def scan_hex_number(stream: TextIOBase, value: str) -> Literal:
+def scan_hex_number(stream: Stream, value: str) -> Literal:
     while char := take(stream):
         if char >= '0' and char <= '9' or char >= 'a' and char <= 'f':
             value += char
@@ -227,7 +229,7 @@ def scan_hex_number(stream: TextIOBase, value: str) -> Literal:
     
     return Literal(int(value, 16))
 
-def scan_bin_number(stream: TextIOBase, value: str) -> Literal:
+def scan_bin_number(stream: Stream, value: str) -> Literal:
     while char := take(stream):
         if char == '_' or char == '0' or char == '1':
             value += char
@@ -239,7 +241,7 @@ def scan_bin_number(stream: TextIOBase, value: str) -> Literal:
     
     return Literal(int(value, 2))
 
-def scan_string(stream: TextIOBase, quote: str) -> Literal:
+def scan_string(stream: Stream, quote: str) -> Literal:
     value = str()
 
     while char := take(stream):
@@ -258,7 +260,7 @@ def scan_string(stream: TextIOBase, quote: str) -> Literal:
     
     return Literal(value)
 
-def scan_comment(stream: TextIOBase) -> Comment:
+def scan_comment(stream: Stream) -> Comment:
     value = str()
 
     while char := take(stream):
@@ -272,7 +274,7 @@ def scan_comment(stream: TextIOBase) -> Comment:
     
     return Comment(value.strip())
 
-def scan_indent(stream: TextIOBase) -> Indent:
+def scan_indent(stream: Stream) -> Indent:
     value = 0
 
     while char := take(stream):
@@ -323,7 +325,7 @@ class TokenHook:
 
         return
 
-def tokenize(stream: TextIOBase) -> TokenHook:
+def tokenize(stream: Stream) -> TokenHook:
     def iterator() -> Iterator[AnyToken]:
         while char := take(stream):
             if char == ' ' or char == '\t':
