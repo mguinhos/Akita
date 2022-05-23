@@ -226,7 +226,7 @@ def compile_type(namespace: Namespace, name: Name):
 
 def compile_def(namespace: Namespace, ast: Def, prefix: Name=None):
     if prefix:
-        ast.name = Name(prefix.value + '.' + ast.name.value, ast.name or ast.rethint)
+        ast.name = Name(compile_type(namespace, prefix).value + '.' + ast.name.value, ast.name or ast.rethint)
 
     local_namespace = Namespace(list(namespace.variables), namespace.functions)
     local_namespace.variables.extend(ast.args)
@@ -249,7 +249,15 @@ def compile_def(namespace: Namespace, ast: Def, prefix: Name=None):
     return f'{"/*" + NEWLINE if is_dummy else ""}{ast.rethint.value if ast.rethint else "void"} {ast.name.value.replace(".", "__")}({", ".join(compile_type(namespace, arg.hint).value + " " + arg.value + ("[]" if compile_type(namespace, arg.hint).value.startswith("list") else "") for arg in ast.args)}){NEWLINE}{{{compile_body(local_namespace, ast.body, indent=1)}{NEWLINE}}}{NEWLINE + "*/" if is_dummy else ""}'
 
 def compile_class(namespace: Namespace, ast: Class):
-    return f'\n'.join(compile_def(namespace, function, prefix=ast.name) for function in ast.body.lines)
+    def compile(line):
+        if type(line) is Comment:
+            return f'// {line.value}'
+        elif line is Token.Ellipsis:
+            return f'// ...'
+
+        return compile_def(namespace, line, prefix=ast.name)
+
+    return f'\n'.join(compile(line) for line in ast.body.lines)
 
 
 def compile(ast, namespace=Namespace(), path='.'):
