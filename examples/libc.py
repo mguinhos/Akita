@@ -1,14 +1,16 @@
+class pointer(Generic[T]):
+    ...
+
+#emit #define pointer__str__ char*
+
 def malloc(size: int) -> int:
     ...
 
 def free(address: int):
     ...
 
-def puts(string: str):
+def puts(string: pointer[str]):
     ...
 
 def exit(status: int):
-    ...
-
-class pointer(Generic[T]):
     ...

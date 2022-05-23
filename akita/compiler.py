@@ -102,7 +102,7 @@ def get_function(namespace: Namespace, call: Call):
     if (functions := namespace.functions.get(call.name)) is None:
         raise NameError(f'there is no function named `{call.name.value}`')
     
-    call_signature = tuple(get_hint(namespace, arg) for arg in call.args)
+    call_signature = tuple(compile_type(namespace, get_hint(namespace, arg)) for arg in call.args)
 
     if call_signature not in functions:
         print(functions)
@@ -163,7 +163,7 @@ def compile_body(namespace: Namespace, body: Body, indent=0):
             if type(ast.value) is List:
                 return f'{ast.name.hint.value} {ast.name.value}[] = {compile_expression(namespace, ast.value)};{NEWLINEINDENT}int len_{ast.name.value} = {len(ast.value.items)};'
 
-            return f'{ast.name.hint.value} {ast.name.value} = {compile_expression(namespace, ast.value)};'
+            return f'{compile_type(namespace, ast.name.hint).value} {ast.name.value} = {compile_expression(namespace, ast.value)};'
         
         elif type(ast) is If:
             return f'if ({compile_expression(namespace, ast.operand)}){NEWLINEINDENT}{{{compile_body(namespace, ast.body, indent +1)}{NEWLINEINDENT}}}'
@@ -242,7 +242,7 @@ def compile_def(namespace: Namespace, ast: Def, prefix: Name=None):
         
         namespace.functions[ast.name].update({tuple(compile_type(namespace, sign) for sign in ast.signature): Def(Name(new_name), ast.args, ast.body, ast.rethint)})
 
-        return f'{"/*" + NEWLINE if is_dummy else ""}{compile_type(namespace, ast.rethint).value} {new_name}({", ".join(compile_type(namespace, arg.hint).value + " " + arg.value for arg in ast.args)}){NEWLINE}{{{compile_body(local_namespace, ast.body, indent=1)}{NEWLINE}}}{NEWLINE + "/*" if is_dummy else ""}'
+        return f'{"/*" + NEWLINE if is_dummy else ""}{compile_type(namespace, ast.rethint).value} {new_name}({", ".join(compile_type(namespace, arg.hint).value + " " + arg.value for arg in ast.args)}){NEWLINE}{{{compile_body(local_namespace, ast.body, indent=1)}{NEWLINE}}}{NEWLINE + "*/" if is_dummy else ""}'
     
     namespace.functions[ast.name] = {tuple(compile_type(namespace, sign) for sign in ast.signature): ast}
 
