@@ -7,7 +7,21 @@ from io import IOBase
 
 Stream = StringIO
 
-class Token(Enum):
+class BaseIdent:
+    def __bool__(self):
+        return self.value != '\0'
+
+    def __hash__(self):
+        return hash(self.value)
+
+    def __len__(self):
+        return len(self.value)
+    
+    def __eq__(self, value: str):
+        return self.value == value
+
+
+class Token(BaseIdent, Enum):
     Eof=                '\0'
 
     Colon=              ':'
@@ -43,21 +57,9 @@ class Token(Enum):
     LeftBracket=        '['
     RightBracket=       ']'
 
-    def __bool__(self):
-        return self.value != '\0'
-
-    def __hash__(self):
-        return hash(self.value)
-
-    def __len__(self):
-        return len(self.value)
-    
-    def __eq__(self, value: str):
-        return self.value == value
-
 TOKENS_SORTED = sorted(Token, key=len, reverse=True)
 
-class Keyword(Enum):
+class Keyword(BaseIdent, Enum):
     Pass=               'pass'
     From=               'from'
     Import=             'import'
@@ -73,18 +75,9 @@ class Keyword(Enum):
     Break=              'break'
     Continue=           'continue'
 
-    def __hash__(self):
-        return hash(self.value)
-
-    def __len__(self):
-        return len(self.value)
-    
-    def __eq__(self, value: str):
-        return self.value == value
-
 KEYWORDS_SORTED = sorted(Keyword, key=len, reverse=True)
 
-class Name:
+class Name(BaseIdent):
     def __init__(self, value: str, hint: "Name"=None):
         self.value = value
         self.hint = hint
@@ -94,20 +87,8 @@ class Name:
             return f'Name({self.value})'
             
         return f'Name({self.value}, {self.hint})'
-    
-    def __hash__(self):
-        return hash(self.value)
 
-    def __len__(self):
-        return len(self.value)
-    
-    def __eq__(self, value: str):
-        if type(value) is type(self):
-            return self.value == value.value
-            
-        return self.value == value
-
-class Literal:
+class Literal(BaseIdent):
     def __init__(self, value: str | bool | int | float, fstring=False):
         self.value = value
         self.fstring = fstring
@@ -117,15 +98,6 @@ class Literal:
             return f'Literal(f{self.value!r})'
 
         return f'Literal({self.value!r})'
-    
-    def __hash__(self):
-        return hash(self.value)
-
-    def __len__(self):
-        return len(self.value)
-    
-    def __eq__(self, value: str):
-        return self.value == value
     
     @property
     def hint(self):
